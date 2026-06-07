@@ -7,16 +7,14 @@
 
 import Foundation
 
-public enum Pantry {
+public struct Pantry: Codable, Sendable {
     public static let baseRoute = "pantries"
     
-    public struct DTO: Codable, Sendable {
-        public let id: UUID?
-        public let name: String
-        
-        public init(id: UUID? = nil, name: String) {
-            self.id = id
-            self.name = name
-        }
+    public let id: UUID?
+    public let name: String
+    
+    public init(id: UUID? = nil, name: String) {
+        self.id = id
+        self.name = name
     }
 }
