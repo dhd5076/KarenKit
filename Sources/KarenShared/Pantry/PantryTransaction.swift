@@ -9,6 +9,7 @@ import Foundation
 
 public enum PantryTransaction {
     public static let baseRoute = "transactions"
+    public static let icon = "arrow.left.arrow.right"
     
     public struct DTO: Codable, Sendable {
         public let id: UUID?

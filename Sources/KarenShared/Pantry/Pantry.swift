@@ -9,6 +9,7 @@ import Foundation
 
 public struct Pantry: Codable, Sendable {
     public static let baseRoute = "pantries"
+    public static let icon = "shippingbox"
     
     public let id: UUID?
     public let name: String

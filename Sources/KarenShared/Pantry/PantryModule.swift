@@ -8,4 +8,5 @@
 public struct PantryModule: KarenModule {
     public static let route = "pantry"
     public static let displayName = "Pantry"
+    public static let icon = "shippingbox.fill"
 }
