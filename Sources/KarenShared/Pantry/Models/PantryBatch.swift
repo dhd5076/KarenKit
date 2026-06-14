@@ -9,6 +9,8 @@ import Foundation
 
 public struct PantryBatch: Codable, Sendable {
     public static let baseRoute = "batches"
+    public static let icon = "tray.full"
+    
     public let id: UUID?
     public let pantry: UUID
     public let product: UUID
