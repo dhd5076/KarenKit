@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PantryBatch: Codable, Sendable {
+public struct PantryBatch: Codable, Sendable, Identifiable {
     public static let baseRoute = "batches"
     public static let icon = "tray.full"
     
