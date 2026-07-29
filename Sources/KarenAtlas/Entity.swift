@@ -12,18 +12,17 @@ public struct Entity: Identifiable, Sendable {
     public let id: UUID
     public let type: String
     public let displayName: String
-    
-    private let database: any Database
-    
-    init(record: EntityRecord, database: any Database) throws {
+
+    init(record: EntityRecord) throws {
         self.id = try record.requireID()
         self.type = record.type
         self.displayName = record.displayName
-        self.database = database
     }
-    
+
     public func attribute(_ name: String) async throws -> String? {
-        try await AttributeRecord.query(on: database)
+        let database = try await Atlas.database()
+
+        return try await AttributeRecord.query(on: database)
             .filter(\.$entity.$id == id)
             .filter(\.$attributeName == name)
             .first()?
@@ -31,6 +30,7 @@ public struct Entity: Identifiable, Sendable {
     }
     
     public func attributes() async throws -> [String: String] {
+        let database = try await Atlas.database()
         let records = try await AttributeRecord.query(on: database)
             .filter(\.$entity.$id == id)
             .all()
@@ -47,6 +47,8 @@ public struct Entity: Identifiable, Sendable {
         to value: String,
         valueType: String = "string"
     ) async throws {
+        let database = try await Atlas.database()
+
         if let record = try await AttributeRecord.query(on: database)
             .filter(\.$entity.$id == id)
             .filter(\.$attributeName == name)
@@ -67,6 +69,8 @@ public struct Entity: Identifiable, Sendable {
     }
     
     public func removeAttribute(_ name: String) async throws {
+        let database = try await Atlas.database()
+
         try await AttributeRecord.query(on: database)
             .filter(\.$entity.$id == id)
             .filter(\.$attributeName == name)
@@ -79,6 +83,7 @@ public struct Entity: Identifiable, Sendable {
         as relationshipType: String,
         validFrom: Date? = nil
     ) async throws -> Relationship {
+        let database = try await Atlas.database()
         let record = RelationshipRecord(
             subject: id,
             relationshipType: relationshipType,
@@ -88,12 +93,26 @@ public struct Entity: Identifiable, Sendable {
         
         try await record.create(on: database)
         
-        return try Relationship(record: record, database: database)
+        return try Relationship(record: record)
     }
-    
+
+    public func updateDisplayName(_ displayName: String) async throws -> Entity {
+        let database = try await Atlas.database()
+
+        guard let record = try await EntityRecord.find(id, on: database) else {
+            throw AtlasError.entityNotFound(id)
+        }
+
+        record.displayName = displayName
+        try await record.update(on: database)
+
+        return try Entity(record: record)
+    }
+
     public func relationships(
         includeEnded: Bool = false
     ) async throws -> [Relationship] {
+        let database = try await Atlas.database()
         let query = RelationshipRecord.query(on: database)
             .group(.or) { group in
                 group.filter(\.$subject.$id == id)
@@ -105,7 +124,7 @@ public struct Entity: Identifiable, Sendable {
         }
         
         return try await query.all().map {
-            try Relationship(record: $0, database: database)
+            try Relationship(record: $0)
         }
     }
 }

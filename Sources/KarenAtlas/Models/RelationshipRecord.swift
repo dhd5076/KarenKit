@@ -10,7 +10,7 @@ import Fluent
 
 final class RelationshipRecord: Model, @unchecked Sendable {
     
-    static let schema = "relationships"
+    static let schema = "atlas_relationships"
     
     enum FieldKeys {
         static let subject: FieldKey = "subject"

@@ -10,7 +10,7 @@ import Fluent
 
 final class AttributeRecord: Model, @unchecked Sendable {
     
-    static let schema = "attributes"
+    static let schema = "atlas_attributes"
     
     enum FieldKeys {
         static let entityID: FieldKey = "entity_id"

@@ -32,6 +32,7 @@ private actor AtlasConfiguration {
 
 public enum Atlas {
     private static let configuration = AtlasConfiguration()
+    @TaskLocal private static var scopedDatabase: (any Database)?
     
     public static func configure(database: any Database) async {
         await configuration.configure(database: database)
@@ -41,7 +42,7 @@ public enum Atlas {
         type: String,
         displayName: String
     ) async throws -> Entity {
-        let database = try await configuration.configuredDatabase()
+        let database = try await database()
         let record = EntityRecord()
         
         record.type = type
@@ -49,23 +50,23 @@ public enum Atlas {
         
         try await record.create(on: database)
         
-        return try Entity(record: record, database: database)
+        return try Entity(record: record)
     }
     
     public static func entity(id: UUID) async throws -> Entity {
-        let database = try await configuration.configuredDatabase()
+        let database = try await database()
         
         guard let record = try await EntityRecord.find(id, on: database) else {
             throw AtlasError.entityNotFound(id)
         }
         
-        return try Entity(record: record, database: database)
+        return try Entity(record: record)
     }
     
     public static func entities(
         ofType type: String? = nil
     ) async throws -> [Entity] {
-        let database = try await configuration.configuredDatabase()
+        let database = try await database()
         let query = EntityRecord.query(on: database)
         
         if let type {
@@ -73,7 +74,57 @@ public enum Atlas {
         }
         
         return try await query.all().map {
-            try Entity(record: $0, database: database)
+            try Entity(record: $0)
         }
+    }
+
+    public static func relationships(
+        subject: UUID? = nil,
+        object: UUID? = nil,
+        type: String? = nil,
+        includeEnded: Bool = false
+    ) async throws -> [Relationship] {
+        let database = try await database()
+        let query = RelationshipRecord.query(on: database)
+
+        if let subject {
+            query.filter(\.$subject.$id == subject)
+        }
+
+        if let object {
+            query.filter(\.$object.$id == object)
+        }
+
+        if let type {
+            query.filter(\.$relationshipType == type)
+        }
+
+        if !includeEnded {
+            query.filter(\.$validUntil == nil)
+        }
+
+        return try await query.all().map {
+            try Relationship(record: $0)
+        }
+    }
+
+    public static func transaction<Value: Sendable>(
+        _ operation: @escaping @Sendable () async throws -> Value
+    ) async throws -> Value {
+        let database = try await database()
+
+        return try await database.transaction { transaction in
+            try await $scopedDatabase.withValue(transaction) {
+                try await operation()
+            }
+        }
+    }
+
+    static func database() async throws -> any Database {
+        if let scopedDatabase {
+            return scopedDatabase
+        }
+
+        return try await configuration.configuredDatabase()
     }
 }
