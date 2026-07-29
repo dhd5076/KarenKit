@@ -7,10 +7,16 @@
 
 import Fluent
 
+/// Creates the Fluent tables used by KarenAtlas.
+///
+/// Register this migration once during application configuration before calling
+/// `autoMigrate()`.
 public struct CreateAtlasTables: AsyncMigration {
     
+    /// Creates the Atlas migration.
     public init() { }
     
+    /// Creates the entity, attribute, and relationship tables.
     public func prepare(on database: any Database) async throws {
         try await database.schema(EntityRecord.schema)
             .id()
@@ -55,6 +61,7 @@ public struct CreateAtlasTables: AsyncMigration {
             .create()
     }
     
+    /// Removes the Atlas relationship, attribute, and entity tables.
     public func revert(on database: any Database) async throws {
         try await database.schema(RelationshipRecord.schema).delete()
         try await database.schema(AttributeRecord.schema).delete()

@@ -59,6 +59,7 @@ let package = Package(
         .target(
             name: "KarenAtlas",
             dependencies: [
+                "KarenKit",
                 .product(
                     name: "Fluent",
                     package: "fluent"
