@@ -1,6 +1,6 @@
 //
-//  VehicleDTO.swift
-//  KarenShared
+//  VehicleTypes.swift
+//  KarenKit
 //
 //  Created by Dylan Dunn on 7/24/26.
 //
@@ -46,7 +46,7 @@ public struct VehicleRequest: Codable, Sendable {
     }
 }
 
-public struct VehicleMakeResponse: Codable, Sendable {
+public struct VehicleMake: Codable, Sendable {
     public let id: UUID
     public let displayName: String
 
@@ -56,7 +56,7 @@ public struct VehicleMakeResponse: Codable, Sendable {
     }
 }
 
-public struct VehicleModelResponse: Codable, Sendable {
+public struct VehicleModel: Codable, Sendable {
     public let id: UUID
     public let makeId: UUID
     public let displayName: String
@@ -68,14 +68,14 @@ public struct VehicleModelResponse: Codable, Sendable {
     }
 }
 
-public struct VehicleResponse: Codable, Sendable {
+public struct Vehicle: Codable, Sendable {
     public let id: UUID
     public let entityId: UUID
     public let displayName: String
     public let vehicleType: String
     public let modelYear: Int?
-    public let make: VehicleMakeResponse?
-    public let model: VehicleModelResponse?
+    public let make: VehicleMake?
+    public let model: VehicleModel?
     public let trim: String?
     public let color: String?
     public let vin: String?
@@ -86,8 +86,8 @@ public struct VehicleResponse: Codable, Sendable {
         displayName: String,
         vehicleType: String,
         modelYear: Int? = nil,
-        make: VehicleMakeResponse? = nil,
-        model: VehicleModelResponse? = nil,
+        make: VehicleMake? = nil,
+        model: VehicleModel? = nil,
         trim: String? = nil,
         color: String? = nil,
         vin: String? = nil
@@ -132,7 +132,7 @@ public struct LicensePlateRelationshipRequest: Codable, Sendable {
     }
 }
 
-public struct LicensePlateResponse: Codable, Sendable {
+public struct LicensePlate: Codable, Sendable {
     public let id: UUID
     public let entityId: UUID
     public let displayNumber: String
@@ -157,15 +157,15 @@ public struct LicensePlateResponse: Codable, Sendable {
     }
 }
 
-public struct VehicleLicensePlateResponse: Codable, Sendable {
+public struct VehicleLicensePlateAssignment: Codable, Sendable {
     public let relationshipId: UUID
-    public let licensePlate: LicensePlateResponse
+    public let licensePlate: LicensePlate
     public let validFrom: Date?
     public let validUntil: Date?
 
     public init(
         relationshipId: UUID,
-        licensePlate: LicensePlateResponse,
+        licensePlate: LicensePlate,
         validFrom: Date? = nil,
         validUntil: Date? = nil
     ) {

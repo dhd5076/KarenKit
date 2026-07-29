@@ -43,15 +43,15 @@ public final class KarenClient: @unchecked Sendable {
         decoder.dateDecodingStrategy = .iso8601
     }
 
-    public func getVehicles() async throws -> [VehicleResponse] {
+    public func getVehicles() async throws -> [Vehicle] {
         try await get([VehicleModule.route])
     }
 
-    public func getVehicle(id: UUID) async throws -> VehicleResponse {
+    public func getVehicle(id: UUID) async throws -> Vehicle {
         try await get([VehicleModule.route, id.uuidString])
     }
 
-    public func createVehicle(_ request: VehicleRequest) async throws -> VehicleResponse {
+    public func createVehicle(_ request: VehicleRequest) async throws -> Vehicle {
         try await send(
             method: "POST",
             path: [VehicleModule.route],
@@ -62,7 +62,7 @@ public final class KarenClient: @unchecked Sendable {
     public func updateVehicle(
         id: UUID,
         request: VehicleRequest
-    ) async throws -> VehicleResponse {
+    ) async throws -> Vehicle {
         try await send(
             method: "PUT",
             path: [VehicleModule.route, id.uuidString],
@@ -70,13 +70,13 @@ public final class KarenClient: @unchecked Sendable {
         )
     }
 
-    public func getVehicleMakes() async throws -> [VehicleMakeResponse] {
+    public func getVehicleMakes() async throws -> [VehicleMake] {
         try await get([VehicleModule.route, "makes"])
     }
 
     public func createVehicleMake(
         displayName: String
-    ) async throws -> VehicleMakeResponse {
+    ) async throws -> VehicleMake {
         try await send(
             method: "POST",
             path: [VehicleModule.route, "makes"],
@@ -84,7 +84,7 @@ public final class KarenClient: @unchecked Sendable {
         )
     }
 
-    public func getVehicleModels(makeId: UUID) async throws -> [VehicleModelResponse] {
+    public func getVehicleModels(makeId: UUID) async throws -> [VehicleModel] {
         try await get([
             VehicleModule.route,
             "makes",
@@ -96,7 +96,7 @@ public final class KarenClient: @unchecked Sendable {
     public func createVehicleModel(
         makeId: UUID,
         displayName: String
-    ) async throws -> VehicleModelResponse {
+    ) async throws -> VehicleModel {
         try await send(
             method: "POST",
             path: [
@@ -111,7 +111,7 @@ public final class KarenClient: @unchecked Sendable {
 
     public func getLicensePlateHistory(
         vehicleId: UUID
-    ) async throws -> [VehicleLicensePlateResponse] {
+    ) async throws -> [VehicleLicensePlateAssignment] {
         try await get([
             VehicleModule.route,
             vehicleId.uuidString,
@@ -122,7 +122,7 @@ public final class KarenClient: @unchecked Sendable {
     public func createAndAssignLicensePlate(
         vehicleId: UUID,
         request: LicensePlateRequest
-    ) async throws -> VehicleLicensePlateResponse {
+    ) async throws -> VehicleLicensePlateAssignment {
         try await send(
             method: "POST",
             path: [
@@ -138,7 +138,7 @@ public final class KarenClient: @unchecked Sendable {
         vehicleId: UUID,
         licensePlateId: UUID,
         effectiveAt: Date? = nil
-    ) async throws -> VehicleLicensePlateResponse {
+    ) async throws -> VehicleLicensePlateAssignment {
         try await send(
             method: "POST",
             path: [
@@ -156,7 +156,7 @@ public final class KarenClient: @unchecked Sendable {
         vehicleId: UUID,
         licensePlateId: UUID,
         effectiveAt: Date? = nil
-    ) async throws -> VehicleLicensePlateResponse {
+    ) async throws -> VehicleLicensePlateAssignment {
         try await send(
             method: "POST",
             path: [
