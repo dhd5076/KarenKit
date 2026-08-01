@@ -1,8 +1,8 @@
 //
 //  VehicleModule.swift
-//  KarenShared
+//  KarenKit
 //
-//  Created by Dylan Dunn on 7/24/26.
+//  Created by Dylan Dunn on 8/1/26.
 //
 
 public struct VehicleModule: KarenModule {

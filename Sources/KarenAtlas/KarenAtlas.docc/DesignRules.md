@@ -73,6 +73,7 @@ KarenAtlas is intentionally an MVP:
 - Attribute `valueType` is descriptive and is not validated.
 - Attribute history is not preserved.
 - Relationship cardinality is not enforced by Atlas.
+- Singular relationship queries do not define ordering when multiple rows match.
 - Most domain uniqueness rules are service-level and can be vulnerable to races.
 - Entity lists can cause N+1 queries when each entity's attributes are loaded.
 - There is no cache or population API.
@@ -95,4 +96,3 @@ Prefer conventional tables or specialized records when:
 
 Atlas is a world-model foundation, not a requirement that every row in Karen use
 EAV storage.
-

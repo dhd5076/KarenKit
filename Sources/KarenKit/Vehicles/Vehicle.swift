@@ -1,9 +1,11 @@
 //
-//  VehicleAtlasTypes.swift
+//  VehicleTypes.swift
 //  KarenKit
 //
-//  Created by Codex on 7/28/26.
+//  Created by Dylan Dunn on 7/24/26.
 //
+
+import Foundation
 
 public extension EntityType {
     static let vehicle = EntityType(rawValue: "vehicle")
@@ -32,4 +34,41 @@ public extension RelationshipType {
     static let licensePlateAssignment = RelationshipType(
         rawValue: "license_plate_assignment"
     )
+}
+
+public struct Vehicle: Codable, Sendable {
+    public let id: UUID
+    public let entityId: UUID
+    public let displayName: String
+    public let vehicleType: String
+    public let modelYear: Int?
+    public let make: VehicleMake?
+    public let model: VehicleModel?
+    public let trim: String?
+    public let color: String?
+    public let vin: String?
+
+    public init(
+        id: UUID,
+        entityId: UUID,
+        displayName: String,
+        vehicleType: String,
+        modelYear: Int? = nil,
+        make: VehicleMake? = nil,
+        model: VehicleModel? = nil,
+        trim: String? = nil,
+        color: String? = nil,
+        vin: String? = nil
+    ) {
+        self.id = id
+        self.entityId = entityId
+        self.displayName = displayName
+        self.vehicleType = vehicleType
+        self.modelYear = modelYear
+        self.make = make
+        self.model = model
+        self.trim = trim
+        self.color = color
+        self.vin = vin
+    }
 }

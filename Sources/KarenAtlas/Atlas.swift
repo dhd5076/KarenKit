@@ -1,6 +1,6 @@
 //
 //  Atlas.swift
-//  KarenKit
+//  KarenAtlas
 //
 //  Created by Dylan Dunn on 7/28/26.
 //
@@ -128,6 +128,63 @@ public enum Atlas {
         includeEnded: Bool = false
     ) async throws -> [Relationship] {
         let database = try await database()
+
+        return try await relationshipQuery(
+            on: database,
+            subject: subject,
+            object: object,
+            type: type,
+            includeEnded: includeEnded
+        )
+        .all()
+        .map { try Relationship(record: $0) }
+    }
+
+    /// Fetches one relationship using optional subject, object, and type filters.
+    ///
+    /// By default, the query only considers active relationships. Pass
+    /// `includeEnded: true` to include historical relationships.
+    ///
+    /// This method does not enforce relationship cardinality or define an order
+    /// among multiple matches. Domain code should only use it where returning any
+    /// matching relationship is sufficient or where uniqueness is enforced
+    /// separately.
+    ///
+    /// - Parameters:
+    ///   - subject: The originating entity identifier.
+    ///   - object: The target entity identifier.
+    ///   - type: The semantic relationship type.
+    ///   - includeEnded: Whether relationships with an end date may be returned.
+    /// - Returns: A matching relationship, or `nil` when no relationship matches.
+    public static func relationship(
+        subject: UUID? = nil,
+        object: UUID? = nil,
+        type: RelationshipType? = nil,
+        includeEnded: Bool = false
+    ) async throws -> Relationship? {
+        let database = try await database()
+
+        guard let record = try await relationshipQuery(
+            on: database,
+            subject: subject,
+            object: object,
+            type: type,
+            includeEnded: includeEnded
+        ).first() else {
+            return nil
+        }
+
+        return try Relationship(record: record)
+    }
+
+    /// Constructs the shared Fluent query used by singular and plural lookups.
+    private static func relationshipQuery(
+        on database: any Database,
+        subject: UUID?,
+        object: UUID?,
+        type: RelationshipType?,
+        includeEnded: Bool
+    ) -> QueryBuilder<RelationshipRecord> {
         let query = RelationshipRecord.query(on: database)
 
         if let subject {
@@ -146,9 +203,7 @@ public enum Atlas {
             query.filter(\.$validUntil == nil)
         }
 
-        return try await query.all().map {
-            try Relationship(record: $0)
-        }
+        return query
     }
 
     /// Executes Atlas operations in a Fluent database transaction.

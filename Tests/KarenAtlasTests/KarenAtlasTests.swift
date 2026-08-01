@@ -74,11 +74,22 @@ struct KarenAtlasTests {
                 as: RelationshipType(rawValue: "owns")
             )
             let activeRelationships = try await vehicle.relationships()
+            let activeRelationship = try await Atlas.relationship(
+                subject: owner.id,
+                object: vehicle.id,
+                type: RelationshipType(rawValue: "owns")
+            )
+            let missingRelationship = try await Atlas.relationship(
+                subject: vehicle.id,
+                type: RelationshipType(rawValue: "owns")
+            )
             
             #expect(relationship.subject == owner.id)
             #expect(relationship.object == vehicle.id)
             #expect(relationship.type == RelationshipType(rawValue: "owns"))
             #expect(activeRelationships.map(\.id) == [relationship.id])
+            #expect(activeRelationship?.id == relationship.id)
+            #expect(missingRelationship == nil)
             
             let endedAt = Date(timeIntervalSince1970: 1_800_000_000)
             let endedRelationship = try await relationship.end(at: endedAt)
@@ -86,10 +97,21 @@ struct KarenAtlasTests {
             let completeHistory = try await vehicle.relationships(
                 includeEnded: true
             )
+            let inactiveRelationship = try await Atlas.relationship(
+                subject: owner.id,
+                type: RelationshipType(rawValue: "owns")
+            )
+            let historicalRelationship = try await Atlas.relationship(
+                subject: owner.id,
+                type: RelationshipType(rawValue: "owns"),
+                includeEnded: true
+            )
             
             #expect(endedRelationship.validUntil == endedAt)
             #expect(remainingActive.isEmpty)
             #expect(completeHistory.map(\.id) == [relationship.id])
+            #expect(inactiveRelationship == nil)
+            #expect(historicalRelationship?.id == relationship.id)
         }
     }
     

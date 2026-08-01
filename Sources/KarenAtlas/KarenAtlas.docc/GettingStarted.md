@@ -98,6 +98,23 @@ Relationships are directional:
 truck --vehicle_make--> Nissan
 ```
 
+Query that outgoing relationship without loading every matching row:
+
+```swift
+let makeRelationship = try await Atlas.relationship(
+    subject: truck.id,
+    type: .vehicleMake
+)
+
+let makeId = makeRelationship?.object
+```
+
+Use ``Atlas/relationships(subject:object:type:includeEnded:)`` when all matching
+relationships are needed. Use
+``Atlas/relationship(subject:object:type:includeEnded:)`` when the domain expects
+one match. Atlas does not itself enforce that only one matching relationship
+exists.
+
 End a relationship without deleting its history:
 
 ```swift
@@ -121,4 +138,3 @@ let vehicle = try await Atlas.transaction {
 
 Atlas entity and relationship methods called inside the closure automatically use
 the transaction-scoped database.
-

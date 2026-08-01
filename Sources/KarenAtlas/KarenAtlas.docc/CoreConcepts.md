@@ -86,6 +86,28 @@ attribute keys.
 Relationships can include optional start and end dates. Ending a relationship
 preserves its history.
 
+Query all matching relationships when the domain permits more than one result:
+
+```swift
+let models = try await Atlas.relationships(
+    object: make.id,
+    type: .modelMake
+)
+```
+
+Query one relationship when the domain expects a single match:
+
+```swift
+let makeRelationship = try await Atlas.relationship(
+    subject: vehicle.id,
+    type: .vehicleMake
+)
+```
+
+Both operations return active relationships by default. The singular operation
+does not enforce uniqueness and does not define which result is returned when
+multiple relationships match. Relationship cardinality remains a domain rule.
+
 ## Attributes Versus Relationships
 
 Use an attribute when the value is scalar:
