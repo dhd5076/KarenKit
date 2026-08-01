@@ -18,10 +18,6 @@ let package = Package(
             targets: ["KarenShared"]
         ),
         .library(
-            name: "KarenClient",
-            targets: ["KarenClient"]
-        ),
-        .library(
             name: "KarenAtlas",
             targets: ["KarenAtlas"]
         )
@@ -46,12 +42,6 @@ let package = Package(
         ),
         .target(
             name: "KarenShared",
-            dependencies: [
-                "KarenKit"
-            ]
-        ),
-        .target(
-            name: "KarenClient",
             dependencies: [
                 "KarenKit"
             ]

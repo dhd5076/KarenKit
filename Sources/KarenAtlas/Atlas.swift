@@ -102,15 +102,81 @@ public enum Atlas {
         ofType type: EntityType? = nil
     ) async throws -> [Entity] {
         let database = try await database()
+
+        return try await entityQuery(on: database, type: type).all().map {
+            try Entity(record: $0)
+        }
+    }
+
+    /// Fetches one entity, optionally filtering by semantic type.
+    ///
+    /// This method does not define an order among multiple matches. Use it when
+    /// any matching entity is sufficient or uniqueness is enforced separately.
+    ///
+    /// - Parameter type: The entity type to match, or `nil` for any type.
+    /// - Returns: A matching entity, or `nil` when no entity matches.
+    public static func entity(
+        ofType type: EntityType? = nil
+    ) async throws -> Entity? {
+        let database = try await database()
+
+        guard let record = try await entityQuery(
+            on: database,
+            type: type
+        ).first() else {
+            return nil
+        }
+
+        return try Entity(record: record)
+    }
+
+    /// Fetches one entity whose attribute has the requested value.
+    ///
+    /// The attribute and value are required together so callers cannot create an
+    /// incomplete attribute filter. The semantic type remains optional.
+    ///
+    /// - Parameters:
+    ///   - type: The entity type to match, or `nil` for any type.
+    ///   - attribute: The attribute to search.
+    ///   - value: The exact stored value to match.
+    /// - Returns: A matching entity, or `nil` when no entity matches.
+    public static func entity(
+        ofType type: EntityType? = nil,
+        where attribute: AttributeKey,
+        equals value: String
+    ) async throws -> Entity? {
+        let database = try await database()
+        let query = entityQuery(on: database, type: type)
+
+        query.join(
+            AttributeRecord.self,
+            on: \EntityRecord.$id == \AttributeRecord.$entity.$id
+        )
+        query.filter(
+            AttributeRecord.self,
+            \.$attributeName == attribute.rawValue
+        )
+        query.filter(AttributeRecord.self, \.$value == value)
+
+        guard let record = try await query.first() else {
+            return nil
+        }
+
+        return try Entity(record: record)
+    }
+
+    /// Constructs the shared Fluent query used by entity lookups.
+    private static func entityQuery(
+        on database: any Database,
+        type: EntityType?
+    ) -> QueryBuilder<EntityRecord> {
         let query = EntityRecord.query(on: database)
-        
+
         if let type {
             query.filter(\.$type == type.rawValue)
         }
-        
-        return try await query.all().map {
-            try Entity(record: $0)
-        }
+
+        return query
     }
 
     /// Queries relationships using optional subject, object, and type filters.
@@ -172,6 +238,20 @@ public enum Atlas {
             includeEnded: includeEnded
         ).first() else {
             return nil
+        }
+
+        return try Relationship(record: record)
+    }
+
+    /// Fetches a relationship by its persistent identifier.
+    ///
+    /// - Throws: ``AtlasError/relationshipNotFound(_:)`` when the relationship
+    ///   does not exist.
+    public static func relationship(id: UUID) async throws -> Relationship {
+        let database = try await database()
+
+        guard let record = try await RelationshipRecord.find(id, on: database) else {
+            throw AtlasError.relationshipNotFound(id)
         }
 
         return try Relationship(record: record)

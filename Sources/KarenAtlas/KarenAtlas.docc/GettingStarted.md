@@ -75,11 +75,48 @@ try await truck.setAttribute(.vin, to: "1N6AD0EV...")
 
 let fetchedTruck = try await Atlas.entity(id: truck.id)
 let vin = try await fetchedTruck.attribute(.vin)
+let vinWithType = try await fetchedTruck.attributeValue(.vin)
 let vehicles = try await Atlas.entities(ofType: .vehicle)
 ```
 
 Entity values are lightweight snapshots. Attribute methods query the database on
 each call in the current implementation.
+
+## Find One Entity
+
+Use the singular type query when the domain only needs one matching entity:
+
+```swift
+let vehicle = try await Atlas.entity(ofType: .vehicle)
+```
+
+The result is optional because no matching entity may exist. When several
+entities match, Atlas returns one without defining their order. Use this form
+only when any match is sufficient or when the domain enforces uniqueness.
+
+Add an attribute and exact value to perform a filtered lookup:
+
+```swift
+let vehicle = try await Atlas.entity(
+    ofType: .vehicle,
+    where: .vin,
+    equals: "1N6AD0EV..."
+)
+```
+
+The entity type is optional when the attribute identifies entities across the
+entire world model:
+
+```swift
+let matchingEntity = try await Atlas.entity(
+    where: .vin,
+    equals: "1N6AD0EV..."
+)
+```
+
+The `where` and `equals` arguments are provided together. Attribute matching is
+exact and uses the value as it is stored, so domain services remain responsible
+for normalization such as uppercasing a VIN before querying.
 
 ## Create a Relationship
 
@@ -107,6 +144,12 @@ let makeRelationship = try await Atlas.relationship(
 )
 
 let makeId = makeRelationship?.object
+```
+
+When the relationship identifier is already known, fetch it directly:
+
+```swift
+let relationship = try await Atlas.relationship(id: relationshipId)
 ```
 
 Use ``Atlas/relationships(subject:object:type:includeEnded:)`` when all matching

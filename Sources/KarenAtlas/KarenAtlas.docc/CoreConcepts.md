@@ -62,7 +62,39 @@ Attributes are currently stored as strings with a string `valueType` descriptor.
 Atlas does not yet decode typed values or validate an entity's allowed attributes.
 Domain services remain responsible for that behavior.
 
+Load ``AtlasAttribute`` values when the caller also needs the stored value type:
+
+```swift
+let vin = try await vehicle.attributeValue(.vin)
+let allAttributeValues = try await vehicle.attributeValues()
+```
+
 An entity can have at most one current value for a given attribute key.
+
+Atlas can find one entity by an exact attribute value:
+
+```swift
+let vehicle = try await Atlas.entity(
+    ofType: .vehicle,
+    where: .vin,
+    equals: normalizedVIN
+)
+```
+
+The entity type is optional. Omitting it searches matching attributes across all
+entity types:
+
+```swift
+let entity = try await Atlas.entity(
+    where: .vin,
+    equals: normalizedVIN
+)
+```
+
+These lookups join the entity and attribute tables in one database query. They do
+not load every entity and query each entity's attributes individually. Atlas
+returns `nil` when no entity matches and does not define which entity is returned
+when several entities have the same matching value.
 
 ## Relationship
 
@@ -102,6 +134,12 @@ let makeRelationship = try await Atlas.relationship(
     subject: vehicle.id,
     type: .vehicleMake
 )
+```
+
+Fetch an already-known relationship directly by its persistent identifier:
+
+```swift
+let relationship = try await Atlas.relationship(id: relationshipId)
 ```
 
 Both operations return active relationships by default. The singular operation

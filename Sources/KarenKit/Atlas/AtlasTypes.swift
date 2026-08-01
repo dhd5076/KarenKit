@@ -17,6 +17,16 @@ public struct EntityType: RawRepresentable, Hashable, Codable, Sendable {
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self.init(rawValue: try container.decode(String.self))
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 /// A stable, extensible identifier for a scalar Atlas attribute.
@@ -28,6 +38,16 @@ public struct AttributeKey: RawRepresentable, Hashable, Codable, Sendable {
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self.init(rawValue: try container.decode(String.self))
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 /// A stable, extensible identifier for a directional relationship between entities.
@@ -38,5 +58,15 @@ public struct RelationshipType: RawRepresentable, Hashable, Codable, Sendable {
     /// Creates a relationship type from its persistent identifier.
     public init(rawValue: String) {
         self.rawValue = rawValue
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self.init(rawValue: try container.decode(String.self))
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }

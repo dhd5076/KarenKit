@@ -31,27 +31,52 @@ public struct Entity: Identifiable, Sendable {
     ///
     /// - Returns: The stored string, or `nil` when the attribute is absent.
     public func attribute(_ key: AttributeKey) async throws -> String? {
-        let database = try await Atlas.database()
-
-        return try await AttributeRecord.query(on: database)
-            .filter(\.$entity.$id == id)
-            .filter(\.$attributeName == key.rawValue)
-            .first()?
-            .value
+        try await attributeValue(key)?.value
     }
-    
+
     /// Returns every current attribute associated with the entity.
     public func attributes() async throws -> [AttributeKey: String] {
+        let values = try await attributeValues()
+
+        return Dictionary(
+            uniqueKeysWithValues: values.map { ($0.key, $0.value) }
+        )
+    }
+
+    /// Returns one current attribute including its value type metadata.
+    public func attributeValue(
+        _ key: AttributeKey
+    ) async throws -> AtlasAttribute? {
+        let database = try await Atlas.database()
+
+        guard let record = try await AttributeRecord.query(on: database)
+            .filter(\.$entity.$id == id)
+            .filter(\.$attributeName == key.rawValue)
+            .first() else {
+            return nil
+        }
+
+        return AtlasAttribute(
+            key: AttributeKey(rawValue: record.attributeName),
+            value: record.value,
+            valueType: record.valueType
+        )
+    }
+
+    /// Returns all current attributes including value type metadata.
+    public func attributeValues() async throws -> [AtlasAttribute] {
         let database = try await Atlas.database()
         let records = try await AttributeRecord.query(on: database)
             .filter(\.$entity.$id == id)
             .all()
-        
-        return Dictionary(
-            uniqueKeysWithValues: records.map {
-                (AttributeKey(rawValue: $0.attributeName), $0.value)
-            }
-        )
+
+        return records.map {
+            AtlasAttribute(
+                key: AttributeKey(rawValue: $0.attributeName),
+                value: $0.value,
+                valueType: $0.valueType
+            )
+        }
     }
     
     /// Creates or replaces one attribute value.

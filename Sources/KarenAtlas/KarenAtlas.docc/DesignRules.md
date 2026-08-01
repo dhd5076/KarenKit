@@ -23,7 +23,7 @@ A domain service should know how to:
 For example, Atlas can store a `.vin` attribute. VehicleService decides whether
 the VIN is valid and unique.
 
-## Keep HTTP APIs Workflow-Oriented
+## Prefer Workflow-Oriented HTTP APIs
 
 KarenServer controllers should expose operations such as:
 
@@ -34,14 +34,19 @@ Turn on light
 Record fuel purchase
 ```
 
-Do not expose unrestricted Atlas CRUD endpoints merely because Atlas can represent
-the underlying data. Focused endpoints preserve validation and allow clients to
-remain independent of storage decisions.
+Focused endpoints preserve validation and allow clients to remain independent of
+storage decisions. They should remain the normal interface for domain workflows.
+
+KarenServer may also expose a controlled Atlas API for administrative tools,
+world-model exploration, and runtime-defined data. That API should apply its own
+validation and should not expose destructive persistence operations by default.
+It does not replace domain services.
 
 ## Keep Atlas Out of Frontends
 
-Karen iOS and future clients should use KarenClient and portable KarenKit DTOs.
-They should not import KarenAtlas or understand Fluent records.
+Karen iOS and future clients should use KarenClient and portable KarenKit types.
+They should not import KarenAtlas or understand Fluent records. A generic Atlas
+frontend should still access Atlas through KarenServer's controlled API.
 
 This preserves the intended boundary:
 

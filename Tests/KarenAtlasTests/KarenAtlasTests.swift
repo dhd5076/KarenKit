@@ -8,6 +8,22 @@ import Vapor
 
 @Suite("KarenAtlas", .serialized)
 struct KarenAtlasTests {
+    @Test("Encodes Atlas identifiers as plain strings")
+    func identifierCoding() throws {
+        let encoded = try JSONEncoder().encode(
+            CreateAtlasEntityRequest(
+                type: .vehicle,
+                displayName: "My Truck"
+            )
+        )
+        let json = try #require(
+            JSONSerialization.jsonObject(with: encoded) as? [String: String]
+        )
+
+        #expect(json["type"] == "vehicle")
+        #expect(json["displayName"] == "My Truck")
+    }
+
     @Test("Creates, fetches, and filters entities")
     func entityLifecycle() async throws {
         try await withAtlas {
@@ -28,6 +44,41 @@ struct KarenAtlasTests {
             #expect(allEntities.count == 2)
         }
     }
+
+    @Test("Finds one entity by type and attribute value")
+    func findEntity() async throws {
+        try await withAtlas {
+            let vehicle = try await Atlas.createEntity(.vehicle, "My Truck")
+            let person = try await Atlas.createEntity(
+                EntityType(rawValue: "person"),
+                "Dylan"
+            )
+
+            try await vehicle.setAttribute(.vin, to: "ABC123")
+            try await person.setAttribute(.vin, to: "ABC123")
+
+            let typedMatch = try await Atlas.entity(
+                ofType: .vehicle,
+                where: .vin,
+                equals: "ABC123"
+            )
+            let untypedMatch = try await Atlas.entity(
+                where: .vin,
+                equals: "ABC123"
+            )
+            let typeOnlyMatch = try await Atlas.entity(ofType: .vehicle)
+            let missing = try await Atlas.entity(
+                ofType: .vehicle,
+                where: .vin,
+                equals: "MISSING"
+            )
+
+            #expect(typedMatch?.id == vehicle.id)
+            #expect(untypedMatch?.id == vehicle.id || untypedMatch?.id == person.id)
+            #expect(typeOnlyMatch?.id == vehicle.id)
+            #expect(missing == nil)
+        }
+    }
     
     @Test("Creates, updates, lists, and removes attributes")
     func attributeLifecycle() async throws {
@@ -40,16 +91,26 @@ struct KarenAtlasTests {
             let missingValue = try await vehicle.attribute(.color)
             #expect(missingValue == nil)
             
-            try await vehicle.setAttribute(.color, to: "blue")
+            try await vehicle.setAttribute(
+                .color,
+                to: "blue",
+                valueType: "color-name"
+            )
             let createdValue = try await vehicle.attribute(.color)
+            let createdAttribute = try await vehicle.attributeValue(.color)
             #expect(createdValue == "blue")
+            #expect(createdAttribute?.valueType == "color-name")
             
             try await vehicle.setAttribute(.color, to: "red")
             let updatedValue = try await vehicle.attribute(.color)
             let attributes = try await vehicle.attributes()
+            let attributeValues = try await vehicle.attributeValues()
             
             #expect(updatedValue == "red")
             #expect(attributes == [.color: "red"])
+            #expect(attributeValues.count == 1)
+            #expect(attributeValues[0].key == .color)
+            #expect(attributeValues[0].valueType == "string")
             
             try await vehicle.removeAttribute(.color)
             let removedValue = try await vehicle.attribute(.color)
@@ -79,6 +140,9 @@ struct KarenAtlasTests {
                 object: vehicle.id,
                 type: RelationshipType(rawValue: "owns")
             )
+            let relationshipById = try await Atlas.relationship(
+                id: relationship.id
+            )
             let missingRelationship = try await Atlas.relationship(
                 subject: vehicle.id,
                 type: RelationshipType(rawValue: "owns")
@@ -89,6 +153,7 @@ struct KarenAtlasTests {
             #expect(relationship.type == RelationshipType(rawValue: "owns"))
             #expect(activeRelationships.map(\.id) == [relationship.id])
             #expect(activeRelationship?.id == relationship.id)
+            #expect(relationshipById.id == relationship.id)
             #expect(missingRelationship == nil)
             
             let endedAt = Date(timeIntervalSince1970: 1_800_000_000)
