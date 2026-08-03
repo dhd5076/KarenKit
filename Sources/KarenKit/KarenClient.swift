@@ -22,6 +22,7 @@ public final class KarenClient: @unchecked Sendable {
     public let baseURL: URL
     public let applicationToken: String
     public let atlas: AtlasService
+    public let people: PeopleService
     public let vehicles: VehicleService
 
     let transport: ClientTransport
@@ -40,6 +41,7 @@ public final class KarenClient: @unchecked Sendable {
         )
         self.transport = transport
         self.atlas = AtlasService(transport: transport)
+        self.people = PeopleService(transport: transport)
         self.vehicles = VehicleService(transport: transport)
     }
 }
