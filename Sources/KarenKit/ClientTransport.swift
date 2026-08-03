@@ -28,9 +28,15 @@ final class ClientTransport: @unchecked Sendable {
     }
 
     func get<Response: Decodable & Sendable>(
-        _ path: [String]
+        _ path: [String],
+        queryItems: [URLQueryItem] = []
     ) async throws -> Response {
-        try await send(method: "GET", path: path)
+        try await send(
+            method: "GET",
+            path: path,
+            queryItems: queryItems,
+            encodedBody: nil
+        )
     }
 
     func send<Response: Decodable & Sendable>(
@@ -40,6 +46,7 @@ final class ClientTransport: @unchecked Sendable {
         try await send(
             method: method,
             path: path,
+            queryItems: [],
             encodedBody: nil
         )
     }
@@ -52,6 +59,7 @@ final class ClientTransport: @unchecked Sendable {
         try await send(
             method: method,
             path: path,
+            queryItems: [],
             encodedBody: encoder.encode(body)
         )
     }
@@ -59,11 +67,29 @@ final class ClientTransport: @unchecked Sendable {
     private func send<Response: Decodable & Sendable>(
         method: String,
         path: [String],
+        queryItems: [URLQueryItem],
         encodedBody: Data?
     ) async throws -> Response {
         var url = baseURL
         for component in path {
             url.appendPathComponent(component)
+        }
+
+        if !queryItems.isEmpty {
+            guard var components = URLComponents(
+                url: url,
+                resolvingAgainstBaseURL: false
+            ) else {
+                throw KarenClientError.invalidResponse
+            }
+
+            components.queryItems = queryItems
+
+            guard let queryURL = components.url else {
+                throw KarenClientError.invalidResponse
+            }
+
+            url = queryURL
         }
 
         var request = URLRequest(url: url)

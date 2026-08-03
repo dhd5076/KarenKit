@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import KarenKit
 
 public struct VehicleService: Sendable {
     private let transport: ClientTransport

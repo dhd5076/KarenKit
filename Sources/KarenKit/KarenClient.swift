@@ -21,6 +21,7 @@ public enum KarenClientError: Error, LocalizedError, Sendable {
 public final class KarenClient: @unchecked Sendable {
     public let baseURL: URL
     public let applicationToken: String
+    public let atlas: AtlasService
     public let vehicles: VehicleService
 
     let transport: ClientTransport
@@ -38,6 +39,7 @@ public final class KarenClient: @unchecked Sendable {
             session: session
         )
         self.transport = transport
+        self.atlas = AtlasService(transport: transport)
         self.vehicles = VehicleService(transport: transport)
     }
 }
